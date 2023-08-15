@@ -1,12 +1,15 @@
-import React from 'react';
-import { Box, Flex, useTheme } from '@chakra-ui/react';
+import React, { useState } from 'react';
+import { Flex, useTheme } from '@chakra-ui/react';
 import './App.css';
 import PlayBoardScreen from './components/PlayBoardScreen';
+import PlayMode from './components/PlayMode';
+import { useSelector } from 'react-redux';
 
 function App() {
-  // Get the theme object using the useTheme hook
-  const theme = useTheme();
 
+  // define theme variable
+  const theme = useTheme();
+  const isPlayModeSelected = useSelector((state)=> state.appReducer.isPlayModeSelected )
 
   return (
     <Flex
@@ -15,8 +18,11 @@ function App() {
       h="100vh"
       bg={theme.colors.brand[50]}
     >
-      <PlayBoardScreen />
-
+      {isPlayModeSelected ? (
+        <PlayBoardScreen />
+      ) : (
+        <PlayMode />
+      )}
     </Flex>
   );
 }
