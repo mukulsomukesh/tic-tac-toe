@@ -1,14 +1,28 @@
-import { Box, useTheme } from '@chakra-ui/react';
-import React from 'react';
+import { Box } from '@chakra-ui/react';
+import React, { useEffect } from 'react';
+import useSound from 'use-sound';
+
+import oSoundFile from "../assets/o_sound.mp3";
+import xSoundFile from "../assets/x_sound.mp3";
 
 export default function CustomBox({ item, onClick, isWinner, backGround, textColor }) {
-
+  const [playOSound] = useSound(oSoundFile);
+  const [playXSound] = useSound(xSoundFile);
 
   const handleClick = () => {
     if (!isWinner && item !== "O" && item !== "X") {
       onClick();
     }
   };
+
+  useEffect(()=>{
+    if (item == "O") {
+      playOSound();
+    }
+    else if (item === "X") {
+      playXSound();
+    }
+  },[item])
 
   return (
     <Box

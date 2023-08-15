@@ -1,6 +1,8 @@
 import { Grid, useTheme } from '@chakra-ui/react';
 import React, { useState, useEffect } from 'react';
 import CustomBox from './CustomBox';
+import useSound from 'use-sound';
+import result from "../assets/result.mp3"
 
 export default function CardContainer() {
   const [arr, setArr] = useState(["", "", "", "", "", "", "", "", ""]);
@@ -8,6 +10,8 @@ export default function CardContainer() {
   const [winner, setWinner] = useState(null); 
   const [winnerBox, setWinnerBox] = useState([])
   const theme = useTheme();
+  const [platResultSound] = useSound(result);
+
 
   useEffect(() => {
     checkWinner();
@@ -26,12 +30,14 @@ export default function CardContainer() {
       if (arr[a] && arr[a] === arr[b] && arr[a] === arr[c]) {
         setWinner(arr[a]);
         setWinnerBox(combo);
+        platResultSound()
         return;
       }
     }
 
     // Check for draw
     if (!arr.includes("")) {
+      platResultSound()
       setWinner("draw");
     }
   };
