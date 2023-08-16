@@ -1,3 +1,6 @@
 export const SELECT_PLAY_MODE =  "SELECT_PLAY_MODE"
+export const X_WON =  "X_WON"
+export const O_WON =  "O_WON"
+export const DRAW =  "DRAW"
 export const UNMUTE = "UNMOTE"
 export const MUTE = "MUTE"

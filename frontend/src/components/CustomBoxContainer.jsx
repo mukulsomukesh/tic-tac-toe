@@ -1,9 +1,10 @@
-import { Grid, useTheme } from '@chakra-ui/react';
+import { Box, Grid, Text, useTheme } from '@chakra-ui/react';
 import React, { useState, useEffect } from 'react';
 import CustomBox from './CustomBox';
 import useSound from 'use-sound';
 import result from "../assets/result.mp3"
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import Users from './Users';
 
 export default function CardContainer() {
 
@@ -15,10 +16,11 @@ export default function CardContainer() {
   const theme = useTheme();
   const [platResultSound] = useSound(result);
   const playMode = useSelector((state) => state.appReducer.playMode)
+  const [resetCountdown, setResetCountDown] = useState(5);
+  const dispatch = useDispatch();
 
 
   useEffect(() => {
-
     // check if any user win
     checkWinner();
 
@@ -27,18 +29,24 @@ export default function CardContainer() {
 
       // timeout
       const computerMoveTimeout = setTimeout(() => {
+
         handelComputerTurn();
-      }, 1000);
+      }, 600);
 
       // Cleanup on setTimeout
       return () => clearTimeout(computerMoveTimeout);
     }
 
-  }, [arr, userTurn]);
+  }, [arr, userTurn, winner]);
 
 
   // check winner function
   const checkWinner = () => {
+
+    // return if winner already checked
+    if (winner) {
+      return null
+    }
 
     // winning combo array
     const winningCombos = [
@@ -57,12 +65,26 @@ export default function CardContainer() {
 
         //  play sound
         platResultSound()
+
+        // dispatch 
+        if (arr[a] == "O") {
+          dispatch({ type: 'O_WON' });
+        }
+        else if(arr[a]=="X"){
+          dispatch({ type: 'X_WON' });
+        }
+
+        // reset play box
+        handelReset()
         return;
       }
     }
 
     // Check for draw
     if (!arr.includes("")) {
+
+      // reset play box
+      handelReset()
 
       // play sound
       platResultSound()
@@ -74,6 +96,11 @@ export default function CardContainer() {
 
   // chandel box click function
   const handleBoxClick = (index) => {
+
+    if (userTurn === "X" && playMode === "Play With Computer") {
+      return null
+    }
+
     if (!winner && arr[index] === "") {
       const updatedArr = [...arr];
       updatedArr[index] = userTurn;
@@ -114,25 +141,64 @@ export default function CardContainer() {
       setUserTurn("O");
     }
   };
-  
+
+
+  // useEffect
+  useEffect(() => {
+
+    // if resetCountdown is 0
+    if (resetCountdown === 0) {
+
+      // reset all states
+      setArr(["", "", "", "", "", "", "", "", ""]);
+      setUserTurn("O");
+      setWinner(null);
+      setWinnerBox([]);
+      setResetCountDown(5);
+    }
+  }, [resetCountdown]);
+
+
+  // handel reset game function
+  const handelReset = () => {
+
+    // countdown for reset 
+    const resetCountdownInterval = setInterval(() => {
+      setResetCountDown((prevCountdown) => prevCountdown - 1);
+    }, 1000);
+
+
+    // clear interval
+    setTimeout(() => {
+      clearInterval(resetCountdownInterval);
+    }, 5000);
+
+  };
+
 
   return (
-    // box grid
-    <Grid templateColumns="repeat(3, 1fr)" gap={4}>
+    <Box>
+      <Grid templateColumns="repeat(3, 1fr)" gap={4}>
 
-    {/* map array */}
-      {arr.map((item, index) => (
-        <CustomBox
-          item={item}
-          key={index}
-          textColor={winnerBox && winnerBox.includes(index) ? theme.colors.brand[200] : theme.colors.brand[100]}
-          backGround={winnerBox && winnerBox.includes(index) ? theme.colors.brand[100] : theme.colors.brand[200]}
-          onClick={() => handleBoxClick(index)}
-          isWinner={winner && winner !== "draw" && winner === item}
-        >
-          {item}
-        </CustomBox>
-      ))}
-    </Grid>
+        {/* map array */}
+        {arr.map((item, index) => (
+          <CustomBox
+            item={item}
+            key={index}
+            textColor={winnerBox && winnerBox.includes(index) ? theme.colors.brand[200] : theme.colors.brand[100]}
+            backGround={winnerBox && winnerBox.includes(index) ? theme.colors.brand[100] : theme.colors.brand[200]}
+            onClick={() => handleBoxClick(index)}
+            isWinner={winner && winner !== "draw" && winner === item}
+          >
+            {item}
+          </CustomBox>
+        ))}
+      </Grid>
+
+      {winner ? <Text align={"center"} as="b" > Reset play board in {resetCountdown} </Text> : ""}
+
+      <Users />
+
+    </Box>
   );
 }
