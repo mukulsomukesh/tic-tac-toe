@@ -2,6 +2,7 @@
 <a href="https://tic-tac-toe-mj.netlify.app/" target="blank">
         <img src="https://img.shields.io/static/v1?style=for-the-badge&message=Want to see live preview »&color=1BB91F&logo=Bluefly&logoColor=FFFFFF&label=" alt="Bluefly-Clone" />
         </a>
+        
 This React app is crafted using React.js, Redux for streamlined state management, and styled with Chakra UI. It offers users the ability to enjoy friendly matches with friends or engage in solo challenges against the computer
 
 ## Screenshots
