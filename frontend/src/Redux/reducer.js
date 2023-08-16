@@ -8,11 +8,11 @@ const initialState = {
     xWon: 0,
     oWon: 0,
     draw: 0,
+    musicPlay: false,
 
 }
 
 export const reducer = (state = initialState, action) => {
-
     const { type, payload } = action;
 
     switch (type) {
@@ -38,8 +38,14 @@ export const reducer = (state = initialState, action) => {
             return {
                 ...state,
                 totalGame: state.totalGame + 1,
-                draw:state.draw+1
+                draw: state.draw + 1
             };
+        case types.MUSIC_PLAY:
+            return {
+                ...state,
+                musicPlay: payload
+            };
+
         default:
             return state;
     }

@@ -4,11 +4,16 @@ import useSound from 'use-sound';
 
 import oSoundFile from "../assets/o_sound.mp3";
 import xSoundFile from "../assets/x_sound.mp3";
+import { useSelector } from 'react-redux';
 
 export default function CustomBox({ item, onClick, isWinner, backGround, textColor }) {
+
+  const musicPlay = useSelector((state) => state.appReducer.musicPlay)
   const [playOSound] = useSound(oSoundFile);
   const [playXSound] = useSound(xSoundFile);
 
+
+  // handel click event
   const handleClick = () => {
     if (!isWinner && item !== "O" && item !== "X") {
       onClick();
@@ -16,10 +21,12 @@ export default function CustomBox({ item, onClick, isWinner, backGround, textCol
   };
 
   useEffect(()=>{
-    if (item == "O") {
+
+    // play sound
+    if (item == "O" && !musicPlay) {
       playOSound();
     }
-    else if (item === "X") {
+    else if (item === "X" && !musicPlay) {
       playXSound();
     }
   },[item])

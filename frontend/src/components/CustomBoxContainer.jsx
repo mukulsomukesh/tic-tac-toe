@@ -16,8 +16,9 @@ export default function CardContainer() {
   const theme = useTheme();
   const [platResultSound] = useSound(result);
   const playMode = useSelector((state) => state.appReducer.playMode)
-  const [resetCountdown, setResetCountDown] = useState(5);
+  const [resetCountdown, setResetCountDown] = useState(3);
   const dispatch = useDispatch();
+  const musicPlay = useSelector((state) => state.appReducer.musicPlay)
 
 
   useEffect(() => {
@@ -64,13 +65,15 @@ export default function CardContainer() {
         setWinnerBox(combo);
 
         //  play sound
-        platResultSound()
+        if (!musicPlay) {
+          platResultSound()
+        }
 
         // dispatch 
         if (arr[a] == "O") {
           dispatch({ type: 'O_WON' });
         }
-        else if(arr[a]=="X"){
+        else if (arr[a] == "X") {
           dispatch({ type: 'X_WON' });
         }
 
@@ -87,7 +90,9 @@ export default function CardContainer() {
       handelReset()
 
       // play sound
-      platResultSound()
+      if (!musicPlay) {
+        platResultSound()
+      }
 
       setWinner("draw");
     }
@@ -154,7 +159,7 @@ export default function CardContainer() {
       setUserTurn("O");
       setWinner(null);
       setWinnerBox([]);
-      setResetCountDown(5);
+      setResetCountDown(3);
     }
   }, [resetCountdown]);
 
@@ -171,7 +176,7 @@ export default function CardContainer() {
     // clear interval
     setTimeout(() => {
       clearInterval(resetCountdownInterval);
-    }, 5000);
+    }, 3000);
 
   };
 
