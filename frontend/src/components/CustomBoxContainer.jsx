@@ -7,154 +7,185 @@ import { useDispatch, useSelector } from 'react-redux';
 import Users from './Users';
 
 export default function CardContainer() {
-
-  // define states
+  // Define states
   const [arr, setArr] = useState(["", "", "", "", "", "", "", "", ""]);
   const [userTurn, setUserTurn] = useState("O");
   const [winner, setWinner] = useState(null);
-  const [winnerBox, setWinnerBox] = useState([])
+  const [winnerBox, setWinnerBox] = useState([]);
   const theme = useTheme();
   const [platResultSound] = useSound(result);
-  const playMode = useSelector((state) => state.appReducer.playMode)
+  const playMode = useSelector((state) => state.appReducer.playMode);
   const [resetCountdown, setResetCountDown] = useState(3);
   const dispatch = useDispatch();
-  const musicPlay = useSelector((state) => state.appReducer.musicPlay)
-
+  const musicPlay = useSelector((state) => state.appReducer.musicPlay);
 
   useEffect(() => {
-    // check if any user win
+    // Check if any user won
     checkWinner();
 
     // If it's the computer's turn
     if (!winner && userTurn === "X" && playMode === "Play With Computer") {
-
-      // timeout
+      // Timeout
       const computerMoveTimeout = setTimeout(() => {
-
         handelComputerTurn();
       }, 600);
 
       // Cleanup on setTimeout
       return () => clearTimeout(computerMoveTimeout);
     }
-
   }, [arr, userTurn, winner]);
 
+  // Check winner function
+  const checkWinnerHelper = (board) => {
+    const winningCombos = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8],
+      [0, 3, 6], [1, 4, 7], [2, 5, 8],
+      [0, 4, 8], [2, 4, 6],
+    ];
 
-  // check winner function
-  const checkWinner = () => {
-
-    // return if winner already checked
-    if (winner) {
-      return null
+    for (const combo of winningCombos) {
+      const [a, b, c] = combo;
+      if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+        return board[a]; // Return the winner ("X" or "O")
+      }
     }
 
-    // winning combo array
+    if (!board.includes("")) {
+      return "draw"; // No winner, board is full
+    }
+
+    return null; // Game is still ongoing
+  };
+
+  const minimax = (board, isMaximizing) => {
+    const winner = checkWinnerHelper(board);
+
+    // Scoring system
+    if (winner === "X") return 10;  // Computer wins
+    if (winner === "O") return -10; // Human wins
+    if (winner === "draw") return 0; // Draw
+
+    if (isMaximizing) {
+      let bestScore = -Infinity;
+      for (let i = 0; i < board.length; i++) {
+        if (board[i] === "") {
+          board[i] = "X"; // Computer move
+          const score = minimax(board, false);
+          board[i] = ""; // Undo move
+          bestScore = Math.max(score, bestScore);
+        }
+      }
+      return bestScore;
+    } else {
+      let bestScore = Infinity;
+      for (let i = 0; i < board.length; i++) {
+        if (board[i] === "") {
+          board[i] = "O"; // Human move
+          const score = minimax(board, true);
+          board[i] = ""; // Undo move
+          bestScore = Math.min(score, bestScore);
+        }
+      }
+      return bestScore;
+    }
+  };
+
+  const handelComputerTurn = () => {
+    let bestScore = -Infinity;
+    let move = null;
+
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i] === "") {
+        arr[i] = "X"; // Simulate computer move
+        const score = minimax(arr, false);
+        arr[i] = ""; // Undo move
+
+        if (score > bestScore) {
+          bestScore = score;
+          move = i;
+        }
+      }
+    }
+
+    if (move !== null) {
+      const updatedArr = [...arr];
+      updatedArr[move] = "X"; // Make the optimal move
+      setArr(updatedArr);
+      setUserTurn("O"); // Switch turn to human
+    }
+  };
+
+  // Check winner function
+  const checkWinner = () => {
+    if (winner) {
+      return null;
+    }
+
     const winningCombos = [
       [0, 1, 2], [3, 4, 5], [6, 7, 8],
       [0, 3, 6], [1, 4, 7], [2, 5, 8],
       [0, 4, 8], [2, 4, 6]
     ];
 
-    // check for winner
     for (const combo of winningCombos) {
-
       const [a, b, c] = combo;
       if (arr[a] && arr[a] === arr[b] && arr[a] === arr[c]) {
         setWinner(arr[a]);
         setWinnerBox(combo);
 
-        //  play sound
+        // Play sound
         if (!musicPlay) {
-          platResultSound()
+          platResultSound();
         }
 
-        // dispatch 
-        if (arr[a] == "O") {
+        // Dispatch
+        if (arr[a] === "O") {
           dispatch({ type: 'O_WON' });
-        }
-        else if (arr[a] == "X") {
+        } else if (arr[a] === "X") {
           dispatch({ type: 'X_WON' });
         }
 
-        // reset play box
-        handelReset()
+        handelReset();
         return;
       }
     }
 
-    // Check for draw
     if (!arr.includes("")) {
-
-      // reset play box
-      handelReset()
-
-      // play sound
+      handelReset();
       if (!musicPlay) {
-        platResultSound()
+        platResultSound();
       }
-
       setWinner("draw");
     }
   };
 
-
-  // chandel box click function
+  // Handle box click function
   const handleBoxClick = (index) => {
-
     if (userTurn === "X" && playMode === "Play With Computer") {
-      return null
+      return null;
     }
 
     if (!winner && arr[index] === "") {
       const updatedArr = [...arr];
       updatedArr[index] = userTurn;
-
-      // toggle user turn
       setUserTurn((prevTurn) => (prevTurn === "O" ? "X" : "O"));
-
       setArr(updatedArr);
     }
   };
 
+  // Reset the game function
+  const handelReset = () => {
+    const resetCountdownInterval = setInterval(() => {
+      setResetCountDown((prevCountdown) => prevCountdown - 1);
+    }, 1000);
 
-  // handel computer turn function
-  const handelComputerTurn = () => {
-
-    // Find an available empty box for the computer's move
-    const emptyBoxes = arr.reduce((emptyIndices, item, index) => {
-      if (item === "") {
-        emptyIndices.push(index);
-      }
-      return emptyIndices;
-    }, []);
-
-
-    // if empty box available
-    if (emptyBoxes.length > 0) {
-
-      // select a random box from emptyBoxes
-      const randomIndex = Math.floor(Math.random() * emptyBoxes.length);
-      const computerMoveIndex = emptyBoxes[randomIndex];
-      const updatedArr = [...arr];
-      updatedArr[computerMoveIndex] = "X";
-
-      // update array
-      setArr(updatedArr);
-
-      // change turn
-      setUserTurn("O");
-    }
+    setTimeout(() => {
+      clearInterval(resetCountdownInterval);
+    }, 3000);
   };
 
-
-  // useEffect
   useEffect(() => {
-
-    // if resetCountdown is 0
     if (resetCountdown === 0) {
-
-      // reset all states
       setArr(["", "", "", "", "", "", "", "", ""]);
       setUserTurn("O");
       setWinner(null);
@@ -163,29 +194,9 @@ export default function CardContainer() {
     }
   }, [resetCountdown]);
 
-
-  // handel reset game function
-  const handelReset = () => {
-
-    // countdown for reset 
-    const resetCountdownInterval = setInterval(() => {
-      setResetCountDown((prevCountdown) => prevCountdown - 1);
-    }, 1000);
-
-
-    // clear interval
-    setTimeout(() => {
-      clearInterval(resetCountdownInterval);
-    }, 3000);
-
-  };
-
-
   return (
     <Box>
       <Grid templateColumns="repeat(3, 1fr)" gap={4}>
-
-        {/* map array */}
         {arr.map((item, index) => (
           <CustomBox
             item={item}
@@ -200,10 +211,8 @@ export default function CardContainer() {
         ))}
       </Grid>
 
-      {winner ? <Text align={"center"} as="b" > Reset play board in {resetCountdown} </Text> : ""}
-
+      {winner ? <Text align={"center"} as="b"> Reset play board in {resetCountdown} </Text> : ""}
       <Users />
-
     </Box>
   );
 }
